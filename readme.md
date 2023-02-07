@@ -15,6 +15,7 @@ Install
 
 [dependencies]
 merkeltreerust = "*"
+
 ```
 
 ## Getting started
@@ -22,9 +23,10 @@ merkeltreerust = "*"
 Construct tree, generate proof
 
 ```rust
-use crate::buffer::Buffer;
-use crate::merkeltree::MerkelTree;
-use crate::option::Options;
+use merkeltreerust::merkeltree::MerkelTree;
+use merkeltreerust::option::Options;
+use merkeltreerust::buffer::Buffer;
+use merkeltreerust::error::MerkelTreeError;
 use tiny_keccak::{Hasher, Keccak};
 
 let whitelist_address: Vec<Buffer> = vec![
