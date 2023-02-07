@@ -3,7 +3,18 @@ name = "merkeltreerust"
 version = "0.1.0"
 edition = "2021"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+description = "🌳 The simple and easy implementation of Merkle Tree"
+authors = ["hxfjsw <hxfjsw@qq.com>"]
+repository = "https://github.com/hxfjsw/merkletreers.git"
+readme = "README.md"
+license = "MIT"
+keywords = [
+  "merkle-tree",
+  "merkle-proof",
+  "merkle-root",
+  "keccak256",
+  "blockchain"
+]
 
 [dependencies]
 web3="0.18.0"
