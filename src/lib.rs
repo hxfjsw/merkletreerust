@@ -1,8 +1,11 @@
-mod merkeltree;
-mod buffer;
-mod option;
-mod error;
-mod proof;
+extern crate hex;
+extern crate tiny_keccak;
+
+pub mod merkeltree;
+pub mod buffer;
+pub mod option;
+pub mod error;
+pub mod proof;
 
 
 #[cfg(test)]
