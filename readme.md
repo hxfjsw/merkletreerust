@@ -6,50 +6,43 @@
   <br />
 </h3>
 
-# MerkleTree.php
+# MerkleTreeRust
 
 Install 
 
 ```bash
-composer require hxfjsw/merkletreephp
+# Cargo.toml
+
+[dependencies]
+merkletreerust = "*"
 ```
 
 ## Getting started
 
 Construct tree, generate proof
 
-```php
-<?php
-use MerkleTreePhp\Buffer;
-use MerkleTreePhp\MerkleTree;
-use MerkleTreePhp\Options;
-use Web3\Utils;
+```rust
+use crate::buffer::Buffer;
+use crate::merkeltree::MerkelTree;
+use crate::option::Options;
+use web3::signing::keccak256;
 
-require __DIR__ . '/vendor/autoload.php';
-
-$whitelistAddress = [
-    '0x6dC0c0be4c8B2dFE750156dc7d59FaABFb5B923D',
-    '0xa8d17cc9caf29af964d19267ddeb4dff122697b0'
+let whitelist_address: Vec<Buffer> = vec![
+    "0x6dC0c0be4c8B2dFE750156dc7d59FaABFb5B923D".parse::<Buffer>()?,
+    "0xa8d17cc9caf29af964d19267ddeb4dff122697b0".parse::<Buffer>()?
 ];
 
-$leafNodes = array_map(fn($address) => Utils::sha3($address), $whitelistAddress);
+let options = Options { duplicate_odd: false, sort_pairs: true, sort_leaves: true, sort: true, hash_leaves: true };
+let hash_fn = |buf: &[u8]| { keccak256(buf).to_vec() };
+let merkle_tree = MerkelTree::new(whitelist_address, hash_fn, options);
 
-$options = new Options();
-$options->sortPairs = true;
+let root = merkle_tree.get_root()?.to_hex();
+let leaf = "0x6dC0c0be4c8B2dFE750156dc7d59FaABFb5B923D";
+let proof = merkle_tree.get_hex_proof(leaf.parse::<Buffer>()?)?;
 
-$hashFn = fn(Buffer $bf) => Buffer::fromHex(Utils::sha3('0x' . $bf->toHex()));
-
-$merkleTree = new MerkleTree($leafNodes, $hashFn, $options);
-
-$root = $merkleTree->getHexRoot();
-echo "root:" . $root . PHP_EOL;
-
-$leaf = $whitelistAddress[0];
-echo "leaf:" . $leaf . PHP_EOL;
-
-$proof = $merkleTree->getHexProof(Utils::sha3($leaf));
-echo "proof:" . json_encode($proof) . PHP_EOL;
-
+println!("root: {:?}", root);
+println!("leaf: {:?}", leaf);
+println!("proof: {:?}", proof);
 ```
 
 
