@@ -17,10 +17,10 @@ mod tests {
     use crate::error::MerkelTreeError;
 
     #[test]
-    fn it_works() ->Result<(),MerkelTreeError>{
-        let whitelist_address: Vec<Buffer> = vec![
+    fn it_works() -> Result<(), MerkelTreeError> {
+        let whitelist_address = vec![
             "0x6dC0c0be4c8B2dFE750156dc7d59FaABFb5B923D".parse::<Buffer>()?,
-            "0xa8d17cc9caf29af964d19267ddeb4dff122697b0".parse::<Buffer>()?
+            "0xa8d17cc9caf29af964d19267ddeb4dff122697b0".parse::<Buffer>()?,
         ];
 
         let options = Options { duplicate_odd: false, sort_pairs: true, sort_leaves: true, sort: true, hash_leaves: true };
