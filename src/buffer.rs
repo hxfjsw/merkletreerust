@@ -1,5 +1,5 @@
 use std::str::FromStr;
-use crate::error::MerkelTreeError;
+use crate::error::MerkleTreeError;
 
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone)]
 pub struct Buffer {
@@ -35,7 +35,7 @@ impl Buffer {
 }
 
 impl FromStr for Buffer {
-    type Err = MerkelTreeError;
+    type Err = MerkleTreeError;
 
     fn from_str(s: &str) -> Result<Self, Self::Err> {
         let mut ss = s;
@@ -46,7 +46,7 @@ impl FromStr for Buffer {
         let payload = hex::decode(ss);
         match payload {
             Ok(payload) => Ok(Buffer { payload }),
-            Err(_e) => Err(MerkelTreeError::FromHexError)
+            Err(_e) => Err(MerkleTreeError::FromHexError)
         }
     }
 }

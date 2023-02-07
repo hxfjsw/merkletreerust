@@ -1,7 +1,7 @@
 extern crate hex;
 extern crate tiny_keccak;
 
-pub mod merkeltree;
+pub mod merkletree;
 pub mod buffer;
 pub mod option;
 pub mod error;
@@ -12,12 +12,12 @@ pub mod proof;
 mod tests {
     use tiny_keccak::{Hasher, Keccak};
     use crate::buffer::Buffer;
-    use crate::merkeltree::MerkelTree;
+    use crate::merkletree::MerkleTree;
     use crate::option::Options;
-    use crate::error::MerkelTreeError;
+    use crate::error::MerkleTreeError;
 
     #[test]
-    fn it_works() -> Result<(), MerkelTreeError> {
+    fn it_works() -> Result<(), MerkleTreeError> {
         let whitelist_address = vec![
             "0x6dC0c0be4c8B2dFE750156dc7d59FaABFb5B923D".parse::<Buffer>()?,
             "0xa8d17cc9caf29af964d19267ddeb4dff122697b0".parse::<Buffer>()?,
@@ -31,7 +31,7 @@ mod tests {
             k256.finalize(&mut result);
             result.to_vec()
         };
-        let merkle_tree = MerkelTree::new(whitelist_address, hash_fn, options);
+        let merkle_tree = MerkleTree::new(whitelist_address, hash_fn, options);
 
         let root = merkle_tree.get_root()?.to_hex();
         let leaf = "0x6dC0c0be4c8B2dFE750156dc7d59FaABFb5B923D";

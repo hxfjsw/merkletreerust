@@ -1,9 +1,9 @@
 use crate::buffer::Buffer;
-use crate::error::MerkelTreeError;
+use crate::error::MerkleTreeError;
 use crate::option::Options;
 use crate::proof::{Proof, ProofPosition};
 
-pub struct MerkelTree<F> {
+pub struct MerkleTree<F> {
     leaves: Vec<Buffer>,
     layers: Vec<Vec<Buffer>>,
     sort_leaves: bool,
@@ -14,8 +14,8 @@ pub struct MerkelTree<F> {
     hash_fn: F,
 }
 
-impl<F> MerkelTree<F> {
-    pub fn new(leaves: Vec<Buffer>, hash_fn: F, options: Options) -> MerkelTree<F>
+impl<F> MerkleTree<F> {
+    pub fn new(leaves: Vec<Buffer>, hash_fn: F, options: Options) -> MerkleTree<F>
         where F: Fn(&[u8]) -> Vec<u8> {
         let mut this = Self {
             sort: false,
@@ -42,16 +42,16 @@ impl<F> MerkelTree<F> {
         this
     }
 
-    pub fn get_root(&self) -> Result<&Buffer, MerkelTreeError> {
+    pub fn get_root(&self) -> Result<&Buffer, MerkleTreeError> {
         if self.layers.len() == 0 {
-            return Err(MerkelTreeError::NoRoot);
+            return Err(MerkleTreeError::NoRoot);
         }
         let i = self.layers.len() - 1;
         let a = self.layers.get(i).unwrap().get(0);
         if let Some(a) = a {
             Ok(a)
         } else {
-            return Err(MerkelTreeError::NoRoot);
+            return Err(MerkleTreeError::NoRoot);
         }
     }
 
@@ -104,10 +104,10 @@ impl<F> MerkelTree<F> {
         }
     }
 
-    pub fn get_proof(&self, _leaf: Buffer) -> Result<Vec<Proof>, MerkelTreeError>
+    pub fn get_proof(&self, _leaf: Buffer) -> Result<Vec<Proof>, MerkleTreeError>
         where F: Fn(&[u8]) -> Vec<u8> {
         if self.leaves.len() == 0 {
-            return Err(MerkelTreeError::NoLeaf);
+            return Err(MerkleTreeError::NoLeaf);
         }
 
         let mut leaf = Buffer::empty();
@@ -153,7 +153,7 @@ impl<F> MerkelTree<F> {
         return Ok(proof);
     }
 
-    pub fn get_hex_proof(&self, leaf: Buffer) -> Result<Vec<String>, MerkelTreeError>
+    pub fn get_hex_proof(&self, leaf: Buffer) -> Result<Vec<String>, MerkleTreeError>
         where F: Fn(&[u8]) -> Vec<u8> {
         let result: Vec<String> = self.get_proof(leaf)?.into_iter().map(|i| { i.data.to_hex() }).collect();
         Ok(result)
