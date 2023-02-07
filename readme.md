@@ -14,7 +14,7 @@ Install
 # Cargo.toml
 
 [dependencies]
-merkeltreerust = "*"
+merkletreerust = "*"
 
 ```
 
