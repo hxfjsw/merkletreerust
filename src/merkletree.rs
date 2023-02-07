@@ -21,16 +21,12 @@ impl<F> MerkleTree<F> {
             sort: options.sort,
             leaves: vec![],
             layers: vec![],
-            sort_leaves: options.sort_leaves,
-            sort_pairs: options.sort_pairs,
-            hash_leaves:  options.hash_leaves,
+            sort_leaves: options.sort_leaves | options.sort,
+            sort_pairs: options.sort_pairs | options.sort,
+            hash_leaves: options.hash_leaves,
             duplicate_odd: options.duplicate_odd,
             hash_fn,
         };
-        if this.sort {
-            this.sort_leaves = true;
-            this.sort_pairs = true;
-        }
         this.process_leaves(leaves);
         this
     }
@@ -102,26 +98,21 @@ impl<F> MerkleTree<F> {
         if self.leaves.len() == 0 {
             return Err(MerkleTreeError::NoLeaf);
         }
-
         let mut leaf = Buffer::empty();
         if self.hash_leaves {
             let hash = (self.hash_fn)(&_leaf.payload[..]);
             leaf = Buffer::new(hash);
         }
-
         let mut proof: Vec<Proof> = vec![];
-
         let mut index: i64 = -1;
         for i in 0..self.leaves.len() {
             if leaf.payload == self.leaves.get(i).unwrap().payload {
                 index = i as i64;
             }
         }
-
         if index == -1 {
             return Ok(proof);
         }
-
         for i in 0..self.layers.len() {
             let layer = self.layers.get(i).unwrap();
             let is_right_node = index % 2;
@@ -131,14 +122,12 @@ impl<F> MerkleTree<F> {
             } else {
                 pair_index = (index + 1) as usize;
             }
-
             if pair_index < layer.len() {
                 proof.push(Proof {
                     position: if is_right_node == 1 { ProofPosition::Left } else { ProofPosition::Right },
                     data: layer.get(pair_index).unwrap().clone(),
                 });
             }
-
             // set index to parent index
             index = (index / 2) | 0;
         }
@@ -171,7 +160,12 @@ impl<F> MerkleTree<F> {
     pub fn hash_fn(&self) -> &F {
         &self.hash_fn
     }
-
+    pub fn leaves(&self) -> &Vec<Buffer> {
+        &self.leaves
+    }
+    pub fn layers(&self) -> &Vec<Vec<Buffer>> {
+        &self.layers
+    }
     pub fn set_sort_leaves(&mut self, sort_leaves: bool) {
         self.sort_leaves = sort_leaves;
     }
@@ -190,14 +184,6 @@ impl<F> MerkleTree<F> {
     pub fn set_hash_fn(&mut self, hash_fn: F) {
         self.hash_fn = hash_fn;
     }
-
-    pub fn leaves(&self) -> &Vec<Buffer> {
-        &self.leaves
-    }
-    pub fn layers(&self) -> &Vec<Vec<Buffer>> {
-        &self.layers
-    }
-
     pub fn set_leaves(&mut self, leaves: Vec<Buffer>) {
         self.leaves = leaves;
     }
