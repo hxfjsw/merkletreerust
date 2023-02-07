@@ -25,7 +25,7 @@ Construct tree, generate proof
 use crate::buffer::Buffer;
 use crate::merkeltree::MerkelTree;
 use crate::option::Options;
-use web3::signing::keccak256;
+use tiny_keccak::{Hasher, Keccak};
 
 let whitelist_address: Vec<Buffer> = vec![
     "0x6dC0c0be4c8B2dFE750156dc7d59FaABFb5B923D".parse::<Buffer>()?,
@@ -33,7 +33,13 @@ let whitelist_address: Vec<Buffer> = vec![
 ];
 
 let options = Options { duplicate_odd: false, sort_pairs: true, sort_leaves: true, sort: true, hash_leaves: true };
-let hash_fn = |buf: &[u8]| { keccak256(buf).to_vec() };
+let hash_fn = |buf: &[u8]| {
+    let mut k256 = Keccak::v256();
+    let mut result = [0; 32];
+    k256.update(buf);
+    k256.finalize(&mut result);
+    result.to_vec()
+};
 let merkle_tree = MerkelTree::new(whitelist_address, hash_fn, options);
 
 let root = merkle_tree.get_root()?.to_hex();
