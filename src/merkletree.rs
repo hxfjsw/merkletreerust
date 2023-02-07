@@ -18,27 +18,20 @@ impl<F> MerkleTree<F> {
     pub fn new(leaves: Vec<Buffer>, hash_fn: F, options: Options) -> MerkleTree<F>
         where F: Fn(&[u8]) -> Vec<u8> {
         let mut this = Self {
-            sort: false,
+            sort: options.sort,
             leaves: vec![],
             layers: vec![],
-            sort_leaves: false,
-            sort_pairs: false,
-            hash_leaves: false,
-            duplicate_odd: false,
+            sort_leaves: options.sort_leaves,
+            sort_pairs: options.sort_pairs,
+            hash_leaves:  options.hash_leaves,
+            duplicate_odd: options.duplicate_odd,
             hash_fn,
         };
-
-        this.hash_leaves = options.hash_leaves;
-        this.sort_leaves = options.sort_leaves;
-        this.sort_pairs = options.sort_pairs;
-        this.sort = options.sort;
         if this.sort {
             this.sort_leaves = true;
             this.sort_pairs = true;
         }
-        this.duplicate_odd = options.duplicate_odd;
         this.process_leaves(leaves);
-
         this
     }
 
