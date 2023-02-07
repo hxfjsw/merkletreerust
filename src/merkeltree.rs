@@ -4,8 +4,8 @@ use crate::option::Options;
 use crate::proof::{Proof, ProofPosition};
 
 pub struct MerkelTree<F> {
-    pub leaves: Vec<Buffer>,
-    pub layers: Vec<Vec<Buffer>>,
+    leaves: Vec<Buffer>,
+    layers: Vec<Vec<Buffer>>,
     sort_leaves: bool,
     sort_pairs: bool,
     sort: bool,
@@ -132,7 +132,6 @@ impl<F> MerkelTree<F> {
         for i in 0..self.layers.len() {
             let layer = self.layers.get(i).unwrap();
             let is_right_node = index % 2;
-
             let pair_index;
             if is_right_node == 1 {
                 pair_index = (index - 1) as usize;
@@ -140,11 +139,15 @@ impl<F> MerkelTree<F> {
                 pair_index = (index + 1) as usize;
             }
 
+            if pair_index < layer.len() {
+                proof.push(Proof {
+                    position: if is_right_node == 1 { ProofPosition::Left } else { ProofPosition::Right },
+                    data: layer.get(pair_index).unwrap().clone(),
+                });
+            }
 
-            proof.push(Proof {
-                position: if is_right_node == 1 { ProofPosition::Left } else { ProofPosition::Right },
-                data: layer.get(pair_index).unwrap().clone(),
-            })
+            // set index to parent index
+            index = (index / 2) | 0;
         }
 
         return Ok(proof);
@@ -154,5 +157,58 @@ impl<F> MerkelTree<F> {
         where F: Fn(&[u8]) -> Vec<u8> {
         let result: Vec<String> = self.get_proof(leaf)?.into_iter().map(|i| { i.data.to_hex() }).collect();
         Ok(result)
+    }
+
+
+    pub fn sort_leaves(&self) -> bool {
+        self.sort_leaves
+    }
+    pub fn sort_pairs(&self) -> bool {
+        self.sort_pairs
+    }
+    pub fn sort(&self) -> bool {
+        self.sort
+    }
+    pub fn hash_leaves(&self) -> bool {
+        self.hash_leaves
+    }
+    pub fn duplicate_odd(&self) -> bool {
+        self.duplicate_odd
+    }
+    pub fn hash_fn(&self) -> &F {
+        &self.hash_fn
+    }
+
+    pub fn set_sort_leaves(&mut self, sort_leaves: bool) {
+        self.sort_leaves = sort_leaves;
+    }
+    pub fn set_sort_pairs(&mut self, sort_pairs: bool) {
+        self.sort_pairs = sort_pairs;
+    }
+    pub fn set_sort(&mut self, sort: bool) {
+        self.sort = sort;
+    }
+    pub fn set_hash_leaves(&mut self, hash_leaves: bool) {
+        self.hash_leaves = hash_leaves;
+    }
+    pub fn set_duplicate_odd(&mut self, duplicate_odd: bool) {
+        self.duplicate_odd = duplicate_odd;
+    }
+    pub fn set_hash_fn(&mut self, hash_fn: F) {
+        self.hash_fn = hash_fn;
+    }
+
+    pub fn leaves(&self) -> &Vec<Buffer> {
+        &self.leaves
+    }
+    pub fn layers(&self) -> &Vec<Vec<Buffer>> {
+        &self.layers
+    }
+
+    pub fn set_leaves(&mut self, leaves: Vec<Buffer>) {
+        self.leaves = leaves;
+    }
+    pub fn set_layers(&mut self, layers: Vec<Vec<Buffer>>) {
+        self.layers = layers;
     }
 }
