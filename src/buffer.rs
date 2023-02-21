@@ -32,6 +32,11 @@ impl Buffer {
         }
         Buffer { payload }
     }
+
+    pub fn append(&mut self, data :&[u8]) -> &mut Buffer {
+        self.payload.extend_from_slice(data);
+        self
+    }
 }
 
 impl FromStr for Buffer {
