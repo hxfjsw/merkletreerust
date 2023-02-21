@@ -24,13 +24,12 @@ impl Buffer {
         "0x".to_owned() + &hex::encode(self.payload.clone())
     }
 
-    #[allow(dead_code)]
     pub fn concat(combined: Vec<Buffer>) -> Buffer {
-        let mut payload = vec![];
-        for c in combined.iter() {
-            payload.extend(c.payload.iter());
+        let mut buffer = Buffer::empty();
+        for item in combined {
+            buffer.payload.extend_from_slice(&item.payload);
         }
-        Buffer { payload }
+        buffer
     }
 
     pub fn append(&mut self, data :&[u8]) -> &mut Buffer {

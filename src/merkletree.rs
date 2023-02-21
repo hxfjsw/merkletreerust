@@ -12,6 +12,7 @@ pub struct MerkleTree<F> {
     hash_leaves: bool,
     duplicate_odd: bool,
     hash_fn: F,
+    is_bitcoin_tree: bool,
 }
 
 impl<F> MerkleTree<F> {
@@ -26,22 +27,31 @@ impl<F> MerkleTree<F> {
             hash_leaves: options.hash_leaves,
             duplicate_odd: options.duplicate_odd,
             hash_fn,
+            is_bitcoin_tree: false,
         };
         this.process_leaves(leaves);
         this
     }
 
-    pub fn get_root(&self) -> Result<&Buffer, MerkleTreeError> {
-        if self.layers.len() == 0 {
+    // pub fn get_root(&self) -> Result<&Buffer, MerkleTreeError> {
+    //     if self.layers.len() == 0 {
+    //         return Err(MerkleTreeError::NoRoot);
+    //     }
+    //     let i = self.layers.len() - 1;
+    //     let a = self.layers.get(i).unwrap().get(0);
+    //     if let Some(a) = a {
+    //         Ok(a)
+    //     } else {
+    //         return Err(MerkleTreeError::NoRoot);
+    //     }
+    // }
+
+    pub fn get_root(&self) -> Result<Buffer, MerkleTreeError> {
+        if self.layers.is_empty() {
             return Err(MerkleTreeError::NoRoot);
         }
-        let i = self.layers.len() - 1;
-        let a = self.layers.get(i).unwrap().get(0);
-        if let Some(a) = a {
-            Ok(a)
-        } else {
-            return Err(MerkleTreeError::NoRoot);
-        }
+        let a = self.layers.last().map_or(Buffer::empty(), |layer| layer[0].clone());
+        Ok(a)
     }
 
     pub fn process_leaves(&mut self, leaves: Vec<Buffer>)
@@ -62,36 +72,88 @@ impl<F> MerkleTree<F> {
         self.create_hashes(self.leaves.clone());
     }
 
-    fn create_hashes(&mut self, nodes: Vec<Buffer>)
+    fn create_hashes(&mut self, mut nodes: Vec<Buffer>)
         where F: Fn(&[u8]) -> Vec<u8> {
-        let mut nodes = nodes;
         while nodes.len() > 1 {
             let layer_index = self.layers.len();
             self.layers.push(vec![]);
-            let mut i = 0;
-            while i < nodes.len() {
+            for i in (0..nodes.len()).step_by(2) {
                 if i + 1 == nodes.len() {
-                    // let data = nodes.get(nodes.len() - 1).unwrap();
-                    // self.layers.get(layer_index).unwrap().push(nodes.get(i).unwrap().clone());
-                    let data = nodes.get(nodes.len() - 1).unwrap();
-                    self.layers.push(vec![data.clone()]);
+                    let data = nodes[nodes.len() - 1].clone();
+                    if self.is_bitcoin_tree {
+                        // let reversed = data.clone().reverse();
+                        // let combined = Buffer::concat(vec![reversed,reversed]);
+                        // let hash = (self.hash_fn)(combined);
+                        // let reversed_hash = hash.clone().reverse();
+                        // self.layers[layer_index].push(reversed_hash);
+                        continue;
+                    } else {
+                        if self.duplicate_odd {
+                            // continue with creating layer
+                        } else {
+                            self.layers[layer_index].push(nodes[i].clone());
+                            continue;
+                        }
+                    }
                 }
-                let left = nodes.get(i).unwrap();
-                let right = if i + 1 == nodes.len() { left } else { nodes.get(i + 1).unwrap() };
-                let mut combined = vec![left.clone(), right.clone()];
-                if self.sort_pairs {
-                    combined.sort();
-                }
-                let data = Buffer::concat(combined);
-                let hash = (self.hash_fn)(&data.payload[..]);
-                let a = self.layers.get_mut(layer_index).unwrap();
-                a.push(Buffer::new(hash));
+                let left = nodes[i].clone();
+                let right = if i + 1 == nodes.len() {
+                    left.clone()
+                } else {
+                    nodes[i + 1].clone()
+                };
+                // let combined = if self.is_bitcoin_tree {
+                //     [&left.reverse(), &right.reverse()]
+                // } else {
+                //     [&left, &right]
+                // };
+                let mut combined = vec![left, right];
+                combined.sort();
+                // println!("left:{} right:{}",combined[0].clone().to_hex(),combined[1].clone().to_hex());
 
-                i += 2;
+                let data = Buffer::concat(combined);
+                // let hash = (self.hash_fn)(data);
+                let hash = (self.hash_fn)(&data.payload[..]);
+                let hash = Buffer::new(hash);
+
+                self.layers[layer_index].push(hash);
             }
-            nodes = self.layers.get(layer_index).unwrap().clone();
+            nodes = self.layers[layer_index].clone();
+            // println!("node:{}",nodes[0].to_hex());
+
         }
     }
+
+    // fn create_hashes(&mut self, nodes: Vec<Buffer>)
+    //     where F: Fn(&[u8]) -> Vec<u8> {
+    //     let mut nodes = nodes;
+    //     while nodes.len() > 1 {
+    //         let layer_index = self.layers.len();
+    //         self.layers.push(vec![]);
+    //         let mut i = 0;
+    //         while i < nodes.len() {
+    //             if i + 1 == nodes.len() {
+    //                 // let data = nodes.get(nodes.len() - 1).unwrap();
+    //                 // self.layers.get(layer_index).unwrap().push(nodes.get(i).unwrap().clone());
+    //                 let data = nodes.get(nodes.len() - 1).unwrap();
+    //                 self.layers.push(vec![data.clone()]);
+    //             }
+    //             let left = nodes.get(i).unwrap();
+    //             let right = if i + 1 == nodes.len() { left } else { nodes.get(i + 1).unwrap() };
+    //             let mut combined = vec![left.clone(), right.clone()];
+    //             if self.sort_pairs {
+    //                 combined.sort();
+    //             }
+    //             let data = Buffer::concat(combined);
+    //             let hash = (self.hash_fn)(&data.payload[..]);
+    //             let a = self.layers.get_mut(layer_index).unwrap();
+    //             a.push(Buffer::new(hash));
+    //
+    //             i += 2;
+    //         }
+    //         nodes = self.layers.get(layer_index).unwrap().clone();
+    //     }
+    // }
 
     pub fn get_proof(&self, _leaf: Buffer) -> Result<Vec<Proof>, MerkleTreeError>
         where F: Fn(&[u8]) -> Vec<u8> {
